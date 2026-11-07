@@ -92,4 +92,55 @@ document.getElementById('lockf').addEventListener('submit',async function(e){
 })();
 })();
 </script>
+<style id="ks-tables">
+:root{--alt:#ecebe5;--csel:#d6e4fa;--cselx:#a9c7f5;--cselh:#2a78d6}
+@media (prefers-color-scheme:dark){:root{--alt:#28282c;--csel:#233650;--cselx:#33507a;--cselh:#6aa6f0}}
+/* centered numbers */
+#app .tw td,#app .tw thead th:not(:first-child){text-align:center}
+/* alternating rows: 0.50, 1.50, 2.50 ... */
+#app .tw tbody tr:not(.sec):not(.hl):nth-child(odd) td:not(.est),#app .tw tbody tr:not(.sec):not(.hl):nth-child(odd) th{background:var(--alt)}
+/* tap to highlight a column / row */
+#app .tw td,#app .tw tbody th{cursor:pointer}
+#app .tw td.csel,#app .tw tbody tr:nth-child(odd) td.csel{background:var(--csel)}
+#app .tw tr.hl td.csel{background:var(--hl);box-shadow:inset 2px 0 var(--cselh),inset -2px 0 var(--cselh)}
+#app .tw tr.rsel td,#app .tw tbody tr.rsel th,#app .tw tbody tr.rsel:nth-child(odd) td,#app .tw tbody tr.rsel:nth-child(odd) th{background:var(--csel);color:var(--ink)}
+#app .tw tr.rsel td.csel{background:var(--cselx);font-weight:700;box-shadow:none}
+#app .tw thead th.csel{color:var(--bg);background:var(--cselh);border-radius:5px 5px 0 0}
+@media print{#app .tw .csel,#app .tw .rsel td,#app .tw .rsel th{background:none!important;box-shadow:none!important}}
+</style>
+<script id="ks-tables-js">
+(function () {
+  'use strict';
+  // Click pickers: − takes one click out (number goes up), + puts one back in.
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.frow .st');
+    if (!b) return;
+    var t = b.textContent.trim();
+    if (t === '−' || t === '-') b.dataset.d = '1'; else if (t === '+') b.dataset.d = '-1';
+  }, true);
+  // Tap a number: highlight its column and row. Top click number: column only. Speed: row only. Same spot again clears.
+  document.addEventListener('click', function (e) {
+    var cell = e.target.closest && e.target.closest('#app .tw td, #app .tw th');
+    if (!cell) return;
+    var tr = cell.parentNode, tbl = cell.closest('table');
+    if (tr.classList.contains('sec')) return;
+    var inHead = !!cell.closest('thead'), col = cell.cellIndex;
+    var newCol = col >= 1 ? String(col) : '', newRow = inHead ? '' : String(tr.rowIndex);
+    if (inHead && !newCol) return;
+    var same = (tbl.getAttribute('data-col') || '') === newCol && (tbl.getAttribute('data-row') || '') === newRow;
+    tbl.querySelectorAll('.csel').forEach(function (c) { c.classList.remove('csel'); });
+    tbl.querySelectorAll('.rsel').forEach(function (r) { r.classList.remove('rsel'); });
+    tbl.removeAttribute('data-col'); tbl.removeAttribute('data-row');
+    if (same) return;
+    if (newCol) {
+      tbl.setAttribute('data-col', newCol);
+      Array.prototype.forEach.call(tbl.rows, function (r) {
+        if (r.classList.contains('sec')) return;
+        var c = r.cells[col]; if (c) c.classList.add('csel');
+      });
+    }
+    if (newRow) { tbl.setAttribute('data-row', newRow); tr.classList.add('rsel'); }
+  });
+})();
+</script>
 <script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></body></html>
